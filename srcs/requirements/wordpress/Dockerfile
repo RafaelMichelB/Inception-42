@@ -1,8 +1,8 @@
-FROM debian:buster
+FROM debian:bullseye
 
 RUN apt-get update -y && apt upgrade -y
 RUN apt-get install -y apt-utils
-RUN apt-get install -y php7.3-fpm php7.3-mysql mariadb-client wget curl vim
+RUN apt-get install -y php7.4-fpm php7.4-mysql mariadb-client wget curl vim
 
 
 RUN mkdir -p /var/www/html && rm -rf /var/www/html/
@@ -18,7 +18,7 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 
 RUN chmod 755 /usr/local/bin/
 
-COPY conf/www.conf /etc/php/7.3/fpm/pool.d/www.conf
+COPY conf/www.conf /etc/php/7.4/fpm/pool.d/www.conf
 COPY tools/auto_config.sh /usr/local/bin/auto_config.sh
 
 RUN chmod +x /usr/local/bin/auto_config.sh
@@ -28,4 +28,4 @@ RUN chmod 755 /run/php
 
 EXPOSE 9000
 
-CMD ["/usr/local/bin/auto_config.sh"]
+ENTRYPOINT ["/usr/local/bin/auto_config.sh"]

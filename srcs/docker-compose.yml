@@ -6,14 +6,14 @@ services:
     build:                      
       context: ./requirements/mariadb
       dockerfile: Dockerfile     
-    container_name: mariadb-container
+    container_name: mariadb
     ports:
       - "3306:3306"
     env_file:
       - .env
     volumes:
       - mariadb_data:/var/lib/mysql
-    restart: always
+    restart: on-failure
     networks:
       - network
 
@@ -26,7 +26,7 @@ services:
     build:
       context: ./requirements/wordpress
       dockerfile: Dockerfile
-    restart: always
+    restart: on-failure
     env_file:
       - .env
     volumes:
@@ -46,7 +46,7 @@ services:
       - mariadb
     volumes:
       - wordpress_data:/var/www/html
-    restart: always
+    restart: on-failure
     networks:
       - network
 
@@ -55,14 +55,14 @@ volumes:
     driver: local
     driver_opts:
       type: none
-      device: /home/rafael/data/mysql
+      device: /home/rafael-ubuntu/data/mysql
       o: bind
 
   wordpress_data:
     driver: local
     driver_opts:
       type: none
-      device: /home/rafael/data/wordpress
+      device: /home/rafael-ubuntu/data/wordpress
       o: bind
 
 networks:

@@ -1,34 +1,33 @@
 #!/bin/bash
 
-# Démarrer le service MariaDB
+# Vérification des permissions
+
 mysqld --datadir=/var/lib/mysql &
-sleep 10
+pid=$!
 
-ls -ld /var/run/mysqld
+# Attendre que MariaDB soit prêt
+for i in {1..10}; do
+    if mysqladmin ping -u root --silent; then
+        break
+    fi
+    echo "Attente de MariaDB..."
+    sleep 2
+done
 
-echo "Creating user..."
-mysql -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';"
-
-mysql -e "FLUSH PRIVILEGES;"
-
-echo "Generating database..."
-mysql -e "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};"
-
-# Exécuter le script SQL d'initialisation
-mysql -u root -p"${MYSQL_ROOT_PASSWORD}" 
-if [ $? -ne 0 ]; then
-    echo "Échec de l'exécution du script SQL"
+if ! mysqladmin ping -u root --silent; then
+    echo "MariaDB ne s'est pas lancé correctement."
     exit 1
 fi
 
-echo "=== Script SQL exécuté avec succès ==="
+# Initialisation SQL
+echo "Création de l'utilisateur et de la base..."
+mysql -e "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';"
+mysql -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO '${MYSQL_USER}'@'%';"
+mysql -e "CREATE DATABASE IF NOT EXISTS ${MYSQL_DATABASE};"
 
-# Fonction de surveillance pour garder le conteneur en cours d'exécution
-while true; do
-    sleep 60
-    if ! pgrep mysqld > /dev/null; then
-        echo "Le service MySQL s'est arrêté, redémarrage..."
-        service mysql restart
-    fi
-done
+# Lancer le processus principal `mysqld`
+kill $pid
+sleep 4
+echo "C'est pas infini"
+exec mysqld --datadir=/var/lib/mysql
+echo "Kaikipass"
